@@ -11,6 +11,9 @@
   "Turn Emacs into a blog plataform, literally."
   :group 'comm)
 
+
+;; Configuration
+
 (defvar elblog-host "*")
 
 (defvar elblog-port 8080
@@ -33,6 +36,33 @@
 (defvar elblog--memoized-posts nil
   "An plist containing the buffers already HTMLized. In the form
   of '((buffer-name . buffer)).")
+
+
+;; Utilities
+
+(defun elblog--get-post-language (buffer)
+  "Get the language keyword option from the org buffer."
+  (with-current-buffer (get-buffer buffer)
+    (save-excursion
+      (goto-char (point-min))
+      (let ((current-element (org-element-context))
+            (result nil))
+        (while (not (eql (car current-element) 'headline))
+          (message (format "%s" current-element))
+          (when (and (eql 'keyword (car current-element))
+                     ;; TODO: Use string-match for case-insensitive comparison
+                     (string= "LANGUAGE"
+                              (plist-get (cadr current-element) :key)))
+            (setq result (plist-get (cadr current-element) :value)))
+          (progn
+            (forward-line)
+            (setq current-element (org-element-context))))
+        result))))
+
+
+
+
+;; The meat
 
 (defun elblog-index (httpcon)
   "List all the published buffers.
