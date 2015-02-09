@@ -38,14 +38,12 @@
   "List all the published buffers.
 Argument HTTPCON http connection."
   (elnode-send-html httpcon
-                    (with-temp-buffer
-                      (insert "<!DOCTYPE html><html><head><title>Elblog index</title></head><body><ul>"
-                              )
+                    (with-output-to-string
+                      (princ "<!DOCTYPE html><html><head><title>Elblog index</title></head><body><ul>")
                       (dolist (file (directory-files elblog-post-directory t elblog-post-regexp))
                         (let ((file (file-name-base file)))
-                          (insert (format "<li><a href='/posts/%s/'>%s</a></li>\n" file file))))
-                      (insert "</ul></body></html>")
-                      (buffer-string))))
+                          (princ (format "<li><a href='/posts/%s/'>%s</a></li>\n" file file))))
+                      (princ "</ul></body></html>"))))
 
 (defun elblog-post-handler (httpcon)
   "Render the HTMLized buffer."
