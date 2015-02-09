@@ -29,29 +29,28 @@
   '(("^/posts/.*/$" . elblog-post-handler)
     ("^/$" . elblog-index)))
 
+ ;; TODO: Should it be title instead?
 (defvar elblog--memoized-posts nil
-  "An plist containing the buffers already htmlized. In the form
+  "An plist containing the buffers already HTMLized. In the form
   of '((buffer-name . buffer)).")
 
 (defun elblog-index (httpcon)
   "List all the published buffers.
 Argument HTTPCON http connection."
   (elnode-send-html httpcon
-                    (concat "<!DOCTYPE html><html><head><title>Elblog index</title></head><body><ul>"
-                            (mapconcat
-                             (lambda (pair)
-                               (format "<li><a href='/posts/%s/'>%s</a></li>"
-                                       (car pair)
-                                       (car pair)))
-                             elblog-published-buffers
-                             "\n")
-                            "</ul></body></html>")))
+                    (with-temp-buffer
+                      (insert "<!DOCTYPE html><html><head><title>Elblog index</title></head><body><ul>"
+                              )
+                      (dolist (file (directory-files elblog-post-directory t elblog-post-regexp))
+                        (let ((file (file-name-base file)))
+                          (insert (format "<li><a href='/posts/%s/'>%s</a></li>\n" file file))))
+                      (insert "</ul></body></html>")
+                      (buffer-string))))
 
 (defun elblog-post-handler (httpcon)
   "Render the HTMLized buffer."
   (let* ((path (elnode-http-pathinfo httpcon))
          (buffer-name (caddr (split-string path "/"))))
-    (message "Buffer name: %s" buffer-name)
     (elnode-send-html httpcon
                       (with-current-buffer
                           (htmlize-buffer (get-buffer buffer-name))
