@@ -53,7 +53,7 @@ Argument HTTPCON http connection."
          (buffer-name (caddr (split-string path "/"))))
     (elnode-send-html httpcon
                       (with-current-buffer
-                          (htmlize-buffer (get-buffer buffer-name))
+                          (htmlize-buffer (get-buffer (format "%s.org" buffer-name)))
                         (buffer-string)))))
 
 (defun elblog-root (httpcon)
