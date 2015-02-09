@@ -1,1 +1,2 @@
 * TODO Use closures to refactor get-post-language/date
+* TODO Write a elisp dependency concatenator
