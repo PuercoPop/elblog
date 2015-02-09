@@ -57,7 +57,22 @@
        do (setq result (plist-get (cadr current-element) :value))
        finally return result))))
 
-
+(defun elblog--get-post-date (buffer)
+  "Get the language keyword option from the org buffer."
+  (with-current-buffer (get-buffer buffer)
+    (save-excursion
+      (goto-char (point-min))
+      (cl-loop
+       with result = nil
+       for current-element = (prog1 (org-element-context)
+                               (forward-line))
+       until (eql (car current-element) 'headline)
+       when (and (eql 'keyword (car current-element))
+                     ;; TODO: Use string-match for case-insensitive comparison
+                     (string= "DATE"
+                              (plist-get (cadr current-element) :key)))
+       do (setq result (plist-get (cadr current-element) :value))
+       finally return result))))
 
 
 ;; The meat

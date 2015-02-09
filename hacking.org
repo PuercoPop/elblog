@@ -1,0 +1,1 @@
+* TODO Use closures to refactor get-post-language/date
