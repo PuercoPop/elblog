@@ -1,10 +1,11 @@
 ;; -*- lexical-binding: t -*-
-(require 'cl-lib)
-(require 'htmlize)
-(require 'elnode)
-(require 'elblog-helpers)
 
 ;;; Code:
+
+(require 'cl-lib)
+(require 'rx)
+(require 'htmlize)
+(require 'elnode)
 
 (defgroup elblog nil
   "Turn Emacs into a blog plataform, literally."
@@ -15,31 +16,22 @@
 (defvar elblog-port 8080
   "The port for published buffers to be served on.")
 
-(defvar elblog-published-buffers
-  (list (cons (buffer-name (current-buffer)) (current-buffer)))
-  "An plist of buffers to publish. In the form of '((buffer-name . buffer))")
+(defvar elblog-post-directory nil
+  "The directory where to look for posts.")
+
+(defvar elblog-post-regexp
+  (rx (and bol
+           (1+ anything)
+           ".org"))
+  "Is file a post? By default it matches org files.")
 
 (defvar elblog-routes
   '(("^/posts/.*/$" . elblog-post-handler)
     ("^/$" . elblog-index)))
 
-(defvar elblog-published-buffers
-  (list (cons (buffer-name (current-buffer)) (current-buffer)))
-  "An plist of buffers to publish.  In the form of '((buffer-name . buffer)).")
-
-(defun elblog-publish-buffer (buffer)
-  "Publish a buffer through Elnode."
-  (interactive "bBuffer name: ")
-  (setq elblog-published-buffers
-        (append elblog-published-buffers
-                (with-current-buffer buffer
-                  (list  (cons (buffer-name (current-buffer))
-                               (current-buffer)))))))
-
-(defun elblog-unpublish-buffer (buffer)
-  "Unpublish a BUFFER through Elnode."
-  (interactive "bBuffer name: ")
-  (assoc-delete-all buffer elblog-published-buffers))
+(defvar elblog--memoized-posts nil
+  "An plist containing the buffers already htmlized. In the form
+  of '((buffer-name . buffer)).")
 
 (defun elblog-index (httpcon)
   "List all the published buffers.
@@ -56,13 +48,13 @@ Argument HTTPCON http connection."
                             "</ul></body></html>")))
 
 (defun elblog-post-handler (httpcon)
+  "Render the HTMLized buffer."
   (let* ((path (elnode-http-pathinfo httpcon))
-         (buffer-name (caddr (split-string path "/")))
-         (pair (assoc buffer-name elblog-published-buffers)))
-
+         (buffer-name (caddr (split-string path "/"))))
+    (message "Buffer name: %s" buffer-name)
     (elnode-send-html httpcon
                       (with-current-buffer
-                          (htmlize-buffer (cdr pair))
+                          (htmlize-buffer (get-buffer buffer-name))
                         (buffer-string)))))
 
 (defun elblog-root (httpcon)
@@ -78,7 +70,7 @@ Argument HTTPCON http connection."
   "Stop listening for requests for published buffers."
   (interactive)
   (when (y-or-n-p "Stop publishing buffers? ")
-    (elnode-stop mak/elnode-publish-port)))
+    (elnode-stop elblog-port)))
 
 (provide 'elblog)
 ;;; elblog.el ends here
