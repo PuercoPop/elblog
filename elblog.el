@@ -22,6 +22,9 @@
 (defvar elblog-post-directory nil
   "The directory where to look for posts.")
 
+(defvar elblog-posts nil
+  "A collection elblog-posts")
+
 (defvar elblog-post-regexp
   (rx (and bol
            (1+ anything)
@@ -76,6 +79,27 @@
 
 
 ;; The meat
+
+(cl-defstruct elblog-post
+  "A blog post."
+  name
+  date
+  language
+  html-buffer)
+
+(defun elblog-build-posts ()
+  "Scan the ELBLOG-POST-DIRECTORY and collect them in
+ELBLOG-POSTS."
+  (setq elblog-posts nil)
+  (dolist (file (directory-files elblog-post-directory t elblog-post-regexp))
+    (let ((filename (file-name-base file))
+          (buffer (find-file file)))
+      (push (make-elblog-post :name filename
+                              :date (elblog--get-post-date buffer)
+                              :language (elblog--get-post-date buffer)
+                              :html-buffer (htmlize-buffer buffer))
+            elblog-posts)))
+  elblog-posts)
 
 (defun elblog-index (httpcon)
   "List all the published buffers.
