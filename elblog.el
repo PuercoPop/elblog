@@ -45,19 +45,17 @@
   (with-current-buffer (get-buffer buffer)
     (save-excursion
       (goto-char (point-min))
-      (let ((current-element (org-element-context))
-            (result nil))
-        (while (not (eql (car current-element) 'headline))
-          (message (format "%s" current-element))
-          (when (and (eql 'keyword (car current-element))
+      (cl-loop
+       with result = nil
+       for current-element = (prog1 (org-element-context)
+                               (forward-line))
+       until (eql (car current-element) 'headline)
+       when (and (eql 'keyword (car current-element))
                      ;; TODO: Use string-match for case-insensitive comparison
                      (string= "LANGUAGE"
                               (plist-get (cadr current-element) :key)))
-            (setq result (plist-get (cadr current-element) :value)))
-          (progn
-            (forward-line)
-            (setq current-element (org-element-context))))
-        result))))
+       do (setq result (plist-get (cadr current-element) :value))
+       finally return result))))
 
 
 
