@@ -96,7 +96,7 @@ ELBLOG-POSTS."
           (buffer (find-file file)))
       (push (make-elblog-post :name filename
                               :date (elblog--get-post-date buffer)
-                              :language (elblog--get-post-date buffer)
+                              :language (elblog--get-post-language buffer)
                               :html-buffer (htmlize-buffer buffer))
             elblog-posts)))
   elblog-posts)
@@ -107,9 +107,9 @@ Argument HTTPCON http connection."
   (elnode-send-html httpcon
                     (with-output-to-string
                       (princ "<!DOCTYPE html><html><head><title>Elblog index</title></head><body><ul>")
-                      (dolist (file (directory-files elblog-post-directory t elblog-post-regexp))
-                        (let ((file (file-name-base file)))
-                          (princ (format "<li><a href='/posts/%s/'>%s</a></li>\n" file file))))
+                      (dolist (post elblog-posts)
+                        (princ (format "<li><a href='/posts/%s/'>%s on %s | %s </a></li>\n"
+                                       (elblog-post-name post) (elblog-post-name post) (elblog-post-date post) (elblog-post-language post))))
                       (princ "</ul></body></html>"))))
 
 (defun elblog-post-handler (httpcon)
