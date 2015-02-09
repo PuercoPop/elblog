@@ -1,4 +1,14 @@
 
+(defun elblog-publish-dir (directory)
+  "Add all the files in the buffer to the `elnode-published-buffers'"
+  (dolist (file (directory-files directory t))
+    (message "%s" file)
+    )
+  )
+
+(elblog-publish-dir "~/.emacs.d/user-lisp")
+
+
 (defun assoc-delete-all (key alist)
   "Delete from ALIST all elements whose car is `equal' to KEY.
 Return the modified alist.

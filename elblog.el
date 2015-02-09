@@ -4,6 +4,8 @@
 (require 'elnode)
 (require 'elblog-helpers)
 
+;;; Code:
+
 (defgroup elblog nil
   "Turn Emacs into a blog plataform, literally."
   :group 'comm)
@@ -21,6 +23,10 @@
   '(("^/posts/.*/$" . elblog-post-handler)
     ("^/$" . elblog-index)))
 
+(defvar elblog-published-buffers
+  (list (cons (buffer-name (current-buffer)) (current-buffer)))
+  "An plist of buffers to publish.  In the form of '((buffer-name . buffer)).")
+
 (defun elblog-publish-buffer (buffer)
   "Publish a buffer through Elnode."
   (interactive "bBuffer name: ")
@@ -31,15 +37,13 @@
                                (current-buffer)))))))
 
 (defun elblog-unpublish-buffer (buffer)
-  "Unpublish a buffer through Elnode."
+  "Unpublish a BUFFER through Elnode."
   (interactive "bBuffer name: ")
   (assoc-delete-all buffer elblog-published-buffers))
 
-(assq "elblog.el" elblog-published-buffers)
-
-
 (defun elblog-index (httpcon)
-  "List all the published buffers."
+  "List all the published buffers.
+Argument HTTPCON http connection."
   (elnode-send-html httpcon
                     (concat "<!DOCTYPE html><html><head><title>Elblog index</title></head><body><ul>"
                             (mapconcat
@@ -77,3 +81,4 @@
     (elnode-stop mak/elnode-publish-port)))
 
 (provide 'elblog)
+;;; elblog.el ends here
